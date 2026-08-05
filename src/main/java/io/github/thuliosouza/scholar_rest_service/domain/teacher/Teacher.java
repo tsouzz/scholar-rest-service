@@ -1,4 +1,4 @@
-package io.github.thuliosouza.scholar_rest_service.domain.Teacher;
+package io.github.thuliosouza.scholar_rest_service.domain.teacher;
 
 import io.github.thuliosouza.scholar_rest_service.domain.school.School;
 import jakarta.persistence.*;
@@ -8,9 +8,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "teachers")
-@Getter @Setter
-@AllArgsConstructor
+@Getter
+@Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class Teacher {
 
     @Id
@@ -23,7 +25,7 @@ public class Teacher {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @ManyToOne
