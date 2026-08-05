@@ -10,7 +10,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "schools")
-@Getter @Setter
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class School {
@@ -21,4 +22,5 @@ public class School {
 
     @Column(nullable = false)
     private String name;
+
 }
