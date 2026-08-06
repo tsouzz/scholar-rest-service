@@ -1,4 +1,4 @@
-package io.github.thuliosouza.scholar_rest_service.domain.ClassGroup;
+package io.github.thuliosouza.scholar_rest_service.domain.classgroup;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

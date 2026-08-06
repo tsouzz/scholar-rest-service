@@ -1,6 +1,6 @@
-package io.github.thuliosouza.scholar_rest_service.domain.ClassGroup;
+package io.github.thuliosouza.scholar_rest_service.domain.classgroup;
 
-import io.github.thuliosouza.scholar_rest_service.domain.Teacher.Teacher;
+import io.github.thuliosouza.scholar_rest_service.domain.teacher.Teacher;
 import jakarta.persistence.*;
 import lombok.*;
 
