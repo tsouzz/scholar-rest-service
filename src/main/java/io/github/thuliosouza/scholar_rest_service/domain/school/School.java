@@ -1,10 +1,7 @@
 package io.github.thuliosouza.scholar_rest_service.domain.school;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -12,6 +9,7 @@ import java.util.UUID;
 @Table(name = "schools")
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class School {
