@@ -9,5 +9,5 @@ public interface TeacherRepository extends JpaRepository<Teacher, UUID> {
 
     public Optional<Teacher> findByEmail(String email);
 
-
+    public boolean existsTeacherByEmail(String email);
 }
