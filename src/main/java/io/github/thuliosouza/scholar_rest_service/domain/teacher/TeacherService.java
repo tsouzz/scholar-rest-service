@@ -24,12 +24,12 @@ public class TeacherService {
             String rawPassword,
             String schoolName
     ) {
-        School school = schoolRepository.findSchoolByName(schoolName);
-        if (school == null) {
-            school = new School();
-            school.setName(schoolName);
-            schoolRepository.save(school);
-        }
+        School school = schoolRepository.findSchoolByName(schoolName)
+                .orElseGet(() -> schoolRepository.save(
+                        School.builder()
+                                .name(schoolName)
+                                .build()
+                ));
 
         String passwordHash = passwordEncoder.encode(rawPassword);
 
@@ -73,6 +73,7 @@ public class TeacherService {
     }
 
     public Teacher findByEmail(String email){
-        return teacherRepository.findByEmail(email);
+        return teacherRepository.findByEmail(email)
+                .orElseThrow();
     }
 }
