@@ -11,6 +11,7 @@ import io.github.thuliosouza.scholar_rest_service.infra.security.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,15 +22,16 @@ public class AuthService {
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
     public TokenResponse register(TeacherRequest request) {
         validadePasswordStrenght(request.password());
         validadePasswordMatch(request.password(), request.confirmPassword());
 
         if (teacherRepository.existsTeacherByEmail(request.email())){
-            throw new IllegalStateException("Email já cadastrado");
+            throw new IllegalArgumentException("Email já cadastrado");
         }
 
-        School school = schoolRepository.findSchoolByName(request.name())
+        School school = schoolRepository.findSchoolByName(request.schoolName())
                 .orElseGet(() -> schoolRepository.save(
                         School.builder()
                                 .name(request.name())
