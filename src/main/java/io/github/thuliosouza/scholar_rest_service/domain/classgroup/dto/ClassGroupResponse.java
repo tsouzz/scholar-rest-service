@@ -1,6 +1,7 @@
 package io.github.thuliosouza.scholar_rest_service.domain.classgroup.dto;
 
 import io.github.thuliosouza.scholar_rest_service.domain.classgroup.ClassGroup;
+import io.github.thuliosouza.scholar_rest_service.domain.classgroup.Module;
 import io.github.thuliosouza.scholar_rest_service.domain.teacher.Teacher;
 
 import java.util.Optional;
