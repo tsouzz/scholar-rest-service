@@ -4,9 +4,8 @@ import io.github.thuliosouza.scholar_rest_service.domain.classgroup.dto.ClassGro
 import io.github.thuliosouza.scholar_rest_service.domain.classgroup.dto.ClassGroupResponse;
 import io.github.thuliosouza.scholar_rest_service.domain.classgroup.exception.ClassGroupNotFoundException;
 import io.github.thuliosouza.scholar_rest_service.domain.teacher.Teacher;
-import io.github.thuliosouza.scholar_rest_service.domain.teacher.TeacherRepository;
-import io.github.thuliosouza.scholar_rest_service.domain.teacher.exception.TeacherNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,43 +17,57 @@ import java.util.UUID;
 public class ClassGroupService {
 
     private final ClassGroupRepository classGroupRepository;
-    private final TeacherRepository teacherRepository;
 
     @Transactional
     public ClassGroupResponse createClassGroup(ClassGroupRequest request) {
-        Teacher teacher = teacherRepository.findById(request.teacherId())
-                .orElseThrow(() -> new TeacherNotFoundException("Professor não encontrado!"));
+        Teacher teacher = getAuthenticatedTeacher();
+
+        int number = classGroupRepository
+                .countByModuleAndTeacherId(request.module(), teacher.getId()) + 1;
 
         ClassGroup classGroup = ClassGroup.builder()
-                .number(request.number())
+                .number(number)
                 .module(request.module())
                 .teacher(teacher)
                 .build();
 
-        classGroupRepository.save(classGroup);
-        return ClassGroupResponse.from(classGroup);
+        return ClassGroupResponse.from(classGroupRepository.save(classGroup));
     }
 
-    public List<ClassGroupResponse> findClassGroupsByTeacher(UUID teacherId){
-        return classGroupRepository.findAllByTeacherId(teacherId).stream()
+    public List<ClassGroupResponse> findAllByAuthenticatedTeacher() {
+        Teacher teacher = getAuthenticatedTeacher();
+        return classGroupRepository.findAllByTeacherId(teacher.getId())
+                .stream()
                 .map(ClassGroupResponse::from)
                 .toList();
     }
 
-    @Transactional
-    public ClassGroupResponse update(UUID classGroupId, Module module){
-        ClassGroup classGroup = classGroupRepository.findById(classGroupId)
-                .orElseThrow(() -> new ClassGroupNotFoundException("Classe não encontrada!"));
-        classGroup.setModule(module);
-
-        return ClassGroupResponse.from(classGroup);
+    public ClassGroupResponse findById(UUID classGroupId) {
+        return ClassGroupResponse.from(getClassGroupEntity(classGroupId));
     }
 
     @Transactional
-    public void deleteClassGroup(UUID classGroupId){
-        if(!classGroupRepository.findById(classGroupId).isPresent()){
-            throw new ClassGroupNotFoundException("Classe não encontrada!");
-        }
-        classGroupRepository.deleteById(classGroupId);
+    public ClassGroupResponse update(UUID classGroupId, ClassGroupRequest request) {
+        ClassGroup classGroup = getClassGroupEntity(classGroupId);
+        classGroup.setModule(request.module());
+        return ClassGroupResponse.from(classGroupRepository.save(classGroup));
+    }
+
+    @Transactional
+    public void delete(UUID classGroupId) {
+        classGroupRepository.delete(getClassGroupEntity(classGroupId));
+    }
+
+    private ClassGroup getClassGroupEntity(UUID classGroupId) {
+        return classGroupRepository.findById(classGroupId)
+                .orElseThrow(() -> new ClassGroupNotFoundException(
+                        String.format("Turma com id %s não encontrada.", classGroupId)
+                ));
+    }
+
+    private Teacher getAuthenticatedTeacher() {
+        return (Teacher) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
     }
 }
