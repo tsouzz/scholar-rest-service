@@ -1,9 +1,12 @@
 package io.github.thuliosouza.scholar_rest_service.domain.activity;
 
+import io.github.thuliosouza.scholar_rest_service.domain.activity.dto.ActivityRequest;
+import io.github.thuliosouza.scholar_rest_service.domain.activity.dto.ActivityResponse;
 import io.github.thuliosouza.scholar_rest_service.domain.activity.exception.ActivityNotFoundException;
 import io.github.thuliosouza.scholar_rest_service.domain.activity.exception.AlreadyRegisteredActivityException;
-import io.github.thuliosouza.scholar_rest_service.domain.activity.exception.InvalidGradeException;
 import io.github.thuliosouza.scholar_rest_service.domain.student.Student;
+import io.github.thuliosouza.scholar_rest_service.domain.student.StudentRepository;
+import io.github.thuliosouza.scholar_rest_service.domain.student.exception.StudentNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,47 +21,55 @@ import java.util.UUID;
 public class ActivityService {
 
     private final ActivityRepository activityRepository;
+    private final StudentRepository studentRepository;
 
     @Transactional
-    public Activity createActivity(
-            ActivityType type,
-            BigDecimal grade,
-            Student student
-    ){
-        Activity existing = activityRepository.findByStudentIdAndActivityType(student.getId(), type);
-        if (existing != null) {
-            throw new AlreadyRegisteredActivityException(type.getLabel() + " já registrada para esse aluno!");
-        }
+    public ActivityResponse createActivity(ActivityRequest request) {
+        activityRepository.findByStudentIdAndActivityType(request.studentId(), request.activityType())
+                .ifPresent(a -> {
+                    throw new AlreadyRegisteredActivityException(
+                            request.activityType().getLabel() + " já registrada para esse aluno."
+                    );
+                });
+
+        Student student = studentRepository.findById(request.studentId())
+                .orElseThrow(() -> new StudentNotFoundException("Aluno não encontrado."));
 
         Activity activity = Activity.builder()
-                .grade(grade)
+                .grade(request.grade())
                 .registrationDate(LocalDate.now())
-                .activityType(type)
+                .activityType(request.activityType())
                 .student(student)
                 .build();
 
-        return activityRepository.save(activity);
+        return ActivityResponse.from(activityRepository.save(activity));
     }
 
-    public List<Activity> findByStudent(UUID studentId){
-        return activityRepository.findAllByStudentId(studentId);
+    public List<ActivityResponse> findByStudent(UUID studentId) {
+        return activityRepository.findAllByStudentId(studentId)
+                .stream()
+                .map(ActivityResponse::from)
+                .toList();
     }
 
-    public Activity findByStudentAndType(UUID studentId, ActivityType activityType){
-        return activityRepository.findByStudentIdAndActivityType(studentId, activityType);
+    public ActivityResponse findById(UUID id) {
+        return ActivityResponse.from(getActivityEntity(id));
     }
 
     @Transactional
-    public Activity update(UUID id, BigDecimal grade) {
-        Activity activity = activityRepository.findById(id)
-                .orElseThrow(() -> new ActivityNotFoundException("Atividade não encontrada!"));
+    public ActivityResponse update(UUID id, BigDecimal grade) {
+        Activity activity = getActivityEntity(id);
         activity.setGrade(grade);
-
-        return activity;
+        return ActivityResponse.from(activityRepository.save(activity));
     }
 
     @Transactional
-    public void delete(UUID id){
-        activityRepository.deleteById(id);
+    public void delete(UUID id) {
+        activityRepository.delete(getActivityEntity(id));
+    }
+
+    private Activity getActivityEntity(UUID id) {
+        return activityRepository.findById(id)
+                .orElseThrow(() -> new ActivityNotFoundException("Atividade não encontrada."));
     }
 }
