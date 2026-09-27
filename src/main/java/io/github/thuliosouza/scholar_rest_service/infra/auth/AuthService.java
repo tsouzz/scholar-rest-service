@@ -34,7 +34,7 @@ public class AuthService {
         School school = schoolRepository.findSchoolByName(request.schoolName())
                 .orElseGet(() -> schoolRepository.save(
                         School.builder()
-                                .name(request.name())
+                                .name(request.schoolName())
                                 .build()
                 ));
 
